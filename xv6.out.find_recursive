@@ -1,0 +1,15 @@
+
+xv6 kernel is booting
+
+hart 2 starting
+hart 1 starting
+init: starting sh
+$ mkdir 5SpJTNro
+$ echo > 5SpJTNro/X9MbxN1y
+$ mkdir 5SpJTNro/yyRLvDOG
+$ echo > 5SpJTNro/yyRLvDOG/X9MbxN1y
+$ mkdir Eb4jYWkJ
+$ echo > Eb4jYWkJ/X9MbxN1y
+$ find . X9MbxN1y
+exec find failed
+$ qemu-system-riscv64: terminating on signal 15 from pid 7115 (make)
