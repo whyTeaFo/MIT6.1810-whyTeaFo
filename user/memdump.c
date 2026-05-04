@@ -1,6 +1,7 @@
 #include "kernel/types.h"
 #include "user/user.h"
 #include "kernel/fcntl.h"
+#include "kernel/types.h"
 
 void memdump(char *fmt, char *data);
 
@@ -60,6 +61,50 @@ main(int argc, char *argv[])
 void
 memdump(char *fmt, char *data)
 {
-  // Your code here.
+   int i=0;
 
+   for(; fmt[i] != '\0'; i++){
+       char c = fmt[i];
+       switch(c){
+           case 'i':{
+               int n;
+               n = *(int*)data;
+               printf("%d\n", n);
+               data += 4;
+               break;
+           }
+           case 'p':{
+               uint64 n;
+               n = *(uint64*)data;
+               printf("%lx\n", n);
+               data += 8;
+               break;
+           }
+           case 'h':{
+               uint16 n;
+               n = *(uint16*)data;
+               printf("%d\n", n);
+               data += 2;
+               break;
+           }
+           case 'c':{
+               printf("%c\n", *data);
+               ++data;
+               break;
+           }
+           case 's':{
+               char* p;
+               p = (char*)*(uint64*)data;
+               printf("%s\n", p);
+               data += 8;
+               break;
+           }
+           case 'S':{
+               int len = strlen(data);
+               printf("%s\n", data);
+               data += len + 1;
+               break;
+           }
+       }
+   }
 }
