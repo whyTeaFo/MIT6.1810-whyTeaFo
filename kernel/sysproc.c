@@ -105,3 +105,14 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// reject specific syscall from calling process
+uint64
+sys_interpose(void){
+  int mask;
+
+  argint(0, &mask);
+  myproc()->mask |= mask;
+  argstr(1, myproc()->buf, MAXPATH);
+  return 0;
+}

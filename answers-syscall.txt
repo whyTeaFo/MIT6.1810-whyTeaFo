@@ -1,0 +1,12 @@
+Looking at the backtrace output, which function called syscall?
+kernel/trap.c 68 usertrap(void)
+What is the value of p->trapframe->a7 and what does that value represent? 
+15. syscall number for SYS_open
+What was the previous mode that the CPU was in?
+sstatus = 0x200000022 user mode. When a trap is taken, SPP is set to 0 if the trap originated from user mode
+Write down the assembly instruction the kernel is panicing at. Which register corresponds to the variable num?
+a3  lw a3,0(zero) # 0 <_entry-0x80000000>
+Why does the kernel crash? Hint: look at figure 3-3 in the text; is address 0 mapped in the kernel address space? Is that confirmed by the value in scause above?
+read 0 into a3, which means 'not implemented`.This register must be readable in any implementation, but a value of 0 can be returned to indicate the field is not implemented.
+What is the name of the process that was running when the kernel paniced? What is its process id (pid)?
+init 1

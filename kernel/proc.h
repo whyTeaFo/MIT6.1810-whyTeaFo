@@ -104,4 +104,6 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  int mask;                    // syscall numbers rejected
+  char buf[MAXPATH];           // pathname allowed for open and exec
 };

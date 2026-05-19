@@ -101,6 +101,7 @@ extern uint64 sys_unlink(void);
 extern uint64 sys_link(void);
 extern uint64 sys_mkdir(void);
 extern uint64 sys_close(void);
+extern uint64 sys_interpose(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -126,16 +127,28 @@ static uint64 (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_interpose] sys_interpose,
 };
 
 void
 syscall(void)
 {
   int num;
+  int masked;
   struct proc *p = myproc();
 
   num = p->trapframe->a7;
-  if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
+  // if masked, syscall is rejected
+  masked = (p->mask>>num)&1;
+  // if pathname == buf, syscall open and exec are allowed
+  if(num == SYS_open || num == SYS_exec){
+    char pathname[MAXPATH];
+    argstr(0, pathname, MAXPATH);
+    if(!strncmp(pathname, p->buf, MAXPATH)){
+      masked = 0;
+    };
+  }
+  if(num > 0 && num < NELEM(syscalls) && syscalls[num] && !masked) {
     // Use num to lookup the system call function for num, call it,
     // and store its return value in p->trapframe->a0
     p->trapframe->a0 = syscalls[num]();
