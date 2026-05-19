@@ -12,13 +12,13 @@ main(int argc, char *argv[])
     printf("Usage: attack\n");
     exit(1);
   }else{
-    // for(int i = 1; i < 3; i++){
-    //   printf("%d ", i+1);
-    //   for(int j = 0; j < 10; j++){
-    //     if(!buf[9*4096+i*10+j]){
-    //       printf("x");
+    // for(int i = 0; i < 32; i++){
+    //   printf("no.%d ", i+1);
+    //   for(int j = 0; j < 100; j++){
+    //     if(!buf[i*4096+j]){
+    //       printf(" ");
     //     }else{
-    //       printf("%c", buf[9*4096+i*10+j]);
+    //       printf("%c", buf[i*4096+j]);
     //     }
     //   }
     //   printf("\n");
