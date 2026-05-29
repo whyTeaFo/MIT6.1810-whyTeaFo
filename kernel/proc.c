@@ -169,6 +169,8 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+  if(p->usyscall)
+    kfree((void*)p->usyscall);
 }
 
 // Create a user page table for a given process, with no user memory,
@@ -202,6 +204,21 @@ proc_pagetable(struct proc *p)
     return 0;
   }
 
+  // Allocate a usyscall page
+  if((p->usyscall = (struct usyscall *)kalloc()) == 0){
+    uvmfree(pagetable, 0);
+    return 0;
+  }
+  p->usyscall->pid = p->pid;
+  // map the usyscall page just below the trapframe page
+  if(mappages(pagetable, USYSCALL, PGSIZE,
+              (uint64)(p->usyscall), PTE_R | PTE_U) < 0){
+    uvmunmap(pagetable, USYSCALL, 1, 0);
+    uvmfree(pagetable, 0);
+    return 0;
+  }
+  
+
   return pagetable;
 }
 
@@ -212,6 +229,7 @@ proc_freepagetable(pagetable_t pagetable, uint64 sz)
 {
   uvmunmap(pagetable, TRAMPOLINE, 1, 0);
   uvmunmap(pagetable, TRAPFRAME, 1, 0);
+  uvmunmap(pagetable, USYSCALL, 1, 0);
   uvmfree(pagetable, sz);
 }
 
@@ -275,6 +293,10 @@ kfork(void)
 
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
+
+  // copy usyscall page
+  *(np->usyscall) = *(p->usyscall);
+  np->usyscall->pid = np->pid;
 
   // Cause fork to return 0 in the child.
   np->trapframe->a0 = 0;

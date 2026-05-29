@@ -1,0 +1,44 @@
+For every page table entry in the print_pgtbl output, explain what it logically contains and what its permission bits are.
+va 0x0 pte 0x21FD505B pa 0x87F54000 perm 0x5B 01011011 RXU
+va 0x1000 pte 0x21FC885B pa 0x87F22000 perm 0x5B 01011011 RXU
+va 0x2000 pte 0x21FC7C17 pa 0x87F1F000 perm 0x17 00010111 RWU
+va 0x3000 pte 0x21FC7807 pa 0x87F1E000 perm 0x7  00000111 RW
+va 0x4000 pte 0x21FC80D7 pa 0x87F20000 perm 0xD7 11010111 RWU
+va 0x5000 pte 0x0 pa 0x0 perm 0x0
+va 0x6000 pte 0x0 pa 0x0 perm 0x0
+va 0x7000 pte 0x0 pa 0x0 perm 0x0
+va 0x8000 pte 0x0 pa 0x0 perm 0x0
+va 0x9000 pte 0x0 pa 0x0 perm 0x0
+va 0x3FFFFF6000 pte 0x0 pa 0x0 perm 0x0
+va 0x3FFFFF7000 pte 0x0 pa 0x0 perm 0x0
+va 0x3FFFFF8000 pte 0x0 pa 0x0 perm 0x0
+va 0x3FFFFF9000 pte 0x0 pa 0x0 perm 0x0
+va 0x3FFFFFA000 pte 0x0 pa 0x0 perm 0x0
+va 0x3FFFFFB000 pte 0x0 pa 0x0 perm 0x0
+va 0x3FFFFFC000 pte 0x0 pa 0x0 perm 0x0
+va 0x3FFFFFD000 pte 0x0 pa 0x0 perm 0x0
+va 0x3FFFFFE000 pte 0x21FCCCC7 pa 0x87F33000 perm 0xC7 11000111 RW
+va 0x3FFFFFF000 pte 0x2000184B pa 0x80006000 perm 0x4B 01001011 RX
+text text data guardpage stack
+trapframe trampoline
+
+Which other xv6 system call(s) could be made faster using this shared page? Explain how.
+e.g. getppid() 获取父进程pid
+read-only data maintained by kernel
+
+For every leaf page in the vmprint output, explain what it logically contains and what its permission bits are, and how it relates to the output of the earlier print_pgtbl() exercise above.
+ ..0x0000000000000000: pte 0x0000000021fc6c01 pa 0x0000000087f1b000
+ .. ..0x0000000000000000: pte 0x0000000021fc6801 pa 0x0000000087f1a000
+ .. .. ..0x0000000000000000: pte 0x0000000021fc705b pa 0x0000000087f1c000 UXR
+ .. .. ..0x0000000000001000: pte 0x0000000021fc645b pa 0x0000000087f19000 UXR
+ .. .. ..0x0000000000002000: pte 0x0000000021fc60d7 pa 0x0000000087f18000 UWR
+ .. .. ..0x0000000000003000: pte 0x0000000021fc5c07 pa 0x0000000087f17000 WR
+ .. .. ..0x0000000000004000: pte 0x0000000021fc58d7 pa 0x0000000087f16000 UWR
+ ..0x0000003fc0000000: pte 0x0000000021fc7c01 pa 0x0000000087f1f000
+ .. ..0x0000003fffe00000: pte 0x0000000021fc7801 pa 0x0000000087f1e000
+ .. .. ..0x0000003fffffd000: pte 0x0000000021fc7453 pa 0x0000000087f1d000 UR
+ .. .. ..0x0000003fffffe000: pte 0x0000000021fcfcc7 pa 0x0000000087f3f000 WR
+ .. .. ..0x0000003ffffff000: pte 0x000000002000184b pa 0x0000000080006000 XR
+pte's virtual address, pte(ppn, flags), pte's physical address
+structure: text text data guardpage stack / usyscall trapframe trampoline
+vmprint prints kernel page table, but print_pagetable prints user page table

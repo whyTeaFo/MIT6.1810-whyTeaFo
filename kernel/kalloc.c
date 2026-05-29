@@ -10,6 +10,7 @@
 #include "defs.h"
 
 void freerange(void *pa_start, void *pa_end);
+void freerange_super(void *pa_start, void *pa_end);
 
 extern char end[]; // first address after kernel.
                    // defined by kernel.ld.
@@ -18,16 +19,22 @@ struct run {
   struct run *next;
 };
 
+#define SUPERPAGES_NUM 10
+#define SUPERPAGES_START (PHYSTOP - SUPERPAGES_NUM * 2 * 1024 * 1024)
+
 struct {
   struct spinlock lock;
   struct run *freelist;
-} kmem;
+} kmem, kmem_super;
 
 void
 kinit()
 {
   initlock(&kmem.lock, "kmem");
-  freerange(end, (void*)PHYSTOP);
+  freerange(end, (void*)(SUPERPAGES_START - 1));
+
+  initlock(&kmem_super.lock, "kmem_super");
+  freerange_super((void*)SUPERPAGES_START, (void*)PHYSTOP);
 }
 
 void
@@ -38,6 +45,56 @@ freerange(void *pa_start, void *pa_end)
   for(; p + PGSIZE <= (char*)pa_end; p += PGSIZE)
     kfree(p);
 }
+
+void
+freerange_super(void *pa_start, void *pa_end) {
+  char *p;
+  p = (char *)SUPERPGROUNDUP((uint64)pa_start);
+  for(; p + SUPERPGSIZE <= (char*)pa_end; p += SUPERPGSIZE)
+    superfree(p);
+}
+
+void
+superfree(void *pa)
+{
+  struct run *r;
+
+  if(((uint64)pa % SUPERPGSIZE) != 0 || (uint64)pa < (uint64)SUPERPAGES_START || (uint64)pa >= PHYSTOP)
+    panic("superfree");
+
+  memset(pa, 1, SUPERPGSIZE);
+
+  r = (struct run*)pa;
+
+  acquire(&kmem_super.lock);
+  r->next = kmem_super.freelist;
+  kmem_super.freelist = r;
+  release(&kmem_super.lock);
+}
+
+void*
+superalloc(void)
+{
+  struct run *r;
+
+  acquire(&kmem_super.lock);
+  r = kmem_super.freelist;
+
+  if(r)
+    kmem_super.freelist = r->next;
+  release(&kmem_super.lock);
+
+  if(r)
+    memset((char*)r, 5, SUPERPGSIZE);
+  return (void*)r;
+}
+
+int
+superpage_allocable()
+{
+  return kmem_super.freelist != 0;
+}
+
 
 // Free the page of physical memory pointed at by pa,
 // which normally should have been returned by a
