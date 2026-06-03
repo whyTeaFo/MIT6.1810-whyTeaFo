@@ -146,6 +146,13 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
 
+  // initialize p->sigalarm
+  if((p->sigalarm = (struct sigalarm *)kalloc()) == 0){
+    freeproc(p);
+    release(&p->lock);
+    return 0;
+  }
+
   return p;
 }
 
@@ -409,6 +416,35 @@ kwait(uint64 addr)
     // Wait for a child to exit.
     sleep(p, &wait_lock);  //DOC: wait-sleep
   }
+}
+
+// ksigalarm(n, fn), 
+// after every n "ticks" of CPU time that the program consumes, 
+// the kernel should cause application function fn to be called.
+// return 0 if success
+int
+ksigalarm(int interval, uint64 handler)
+{
+  struct proc *p = myproc();
+
+  if(interval == 0 && handler == 0){
+    p->sigalarm->interval = -1;
+  }
+  p->sigalarm->interval = interval;
+  p->sigalarm->handler = handler;
+  p->sigalarm->cnt = 0;
+  p->sigalarm->retflag = 0;
+  p->sigalarm->reentrant = 1;
+  
+  return 0;
+}
+
+int
+ksigreturn()
+{
+  struct proc *p = myproc();
+  p->sigalarm->retflag = 1;
+  return 0;
 }
 
 // Per-CPU process scheduler.

@@ -79,6 +79,48 @@ struct trapframe {
   /* 280 */ uint64 t6;
 };
 
+// store the alarm interval and the pointer to the handler function
+struct sigalarm {
+  int retflag;
+  int reentrant;
+  int interval;
+  uint64 handler;
+  int cnt;
+  uint64 ra;
+  uint64 sp;
+  uint64 t0;
+  uint64 t1;
+  uint64 t2;
+  uint64 s0;
+  uint64 s1;
+  uint64 a0;
+  uint64 a1;
+  uint64 a2;
+  uint64 a3;
+  uint64 a4;
+  uint64 a5;
+  uint64 a6;
+  uint64 a7;
+  uint64 s2;
+  uint64 s3;
+  uint64 s4;
+  uint64 s5;
+  uint64 s6;
+  uint64 s7;
+  uint64 s8;
+  uint64 s9;
+  uint64 s10;
+  uint64 s11;
+  uint64 t3;
+  uint64 t4;
+  uint64 t5;
+  uint64 t6;
+  uint64 sepc;
+  uint64 stvec;
+  uint64 sstatus;
+  uint64 satp;
+};
+
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 // Per-process state
@@ -104,4 +146,5 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  struct sigalarm *sigalarm;   // store alarm interval, handler function pointer, cnt
 };

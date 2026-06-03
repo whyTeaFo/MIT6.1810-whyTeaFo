@@ -86,6 +86,91 @@ usertrap(void)
 
   prepare_return();
 
+  if(which_dev == 2 && p->sigalarm->interval != -1){
+    if(p->sigalarm->reentrant == 1 && p->sigalarm->cnt == p->sigalarm->interval){
+      // restore regs for sigreturn
+      p->sigalarm->ra = p->trapframe->ra;
+      p->sigalarm->sp = p->trapframe->sp;
+      p->sigalarm->t0 = p->trapframe->t0;
+      p->sigalarm->t1 = p->trapframe->t1;
+      p->sigalarm->t2 = p->trapframe->t2;
+      p->sigalarm->s0 = p->trapframe->s0;
+      p->sigalarm->s1 = p->trapframe->s1;
+      p->sigalarm->a0 = p->trapframe->a0;
+      p->sigalarm->a1 = p->trapframe->a1;
+      p->sigalarm->a2 = p->trapframe->a2;
+      p->sigalarm->a3 = p->trapframe->a3;
+      p->sigalarm->a4 = p->trapframe->a4;
+      p->sigalarm->a5 = p->trapframe->a5;
+      p->sigalarm->a6 = p->trapframe->a6;
+      p->sigalarm->a7 = p->trapframe->a7;
+      p->sigalarm->s2 = p->trapframe->s2;
+      p->sigalarm->s3 = p->trapframe->s3;
+      p->sigalarm->s4 = p->trapframe->s4;
+      p->sigalarm->s5 = p->trapframe->s5;
+      p->sigalarm->s6 = p->trapframe->s6;
+      p->sigalarm->s7 = p->trapframe->s7;
+      p->sigalarm->s8 = p->trapframe->s8;
+      p->sigalarm->s9 = p->trapframe->s9;
+      p->sigalarm->s10 = p->trapframe->s10;
+      p->sigalarm->s11 = p->trapframe->s11;
+      p->sigalarm->t3 = p->trapframe->t3;
+      p->sigalarm->t4 = p->trapframe->t4;
+      p->sigalarm->t5 = p->trapframe->t5;
+      p->sigalarm->t6 = p->trapframe->t6;
+      p->sigalarm->sepc = r_sepc();
+      p->sigalarm->stvec = r_stvec();
+      p->sigalarm->sstatus = r_sstatus();
+      p->sigalarm->satp = r_satp();
+      // set sepc to handler function
+      // every interval ticks
+      w_sepc(p->sigalarm->handler);
+      p->sigalarm->cnt = 0;
+      p->sigalarm->reentrant = 0;
+    }
+    ++p->sigalarm->cnt;
+  }
+
+
+  // sigreturn
+  if(p->sigalarm->retflag == 1){
+    p->trapframe->ra = p->sigalarm->ra;
+    p->trapframe->sp = p->sigalarm->sp;
+    p->trapframe->t0 = p->sigalarm->t0;
+    p->trapframe->t1 = p->sigalarm->t1;
+    p->trapframe->t2 = p->sigalarm->t2;
+    p->trapframe->s0 = p->sigalarm->s0;
+    p->trapframe->s1 = p->sigalarm->s1;
+    p->trapframe->a0 = p->sigalarm->a0;
+    p->trapframe->a1 = p->sigalarm->a1;
+    p->trapframe->a2 = p->sigalarm->a2;
+    p->trapframe->a3 = p->sigalarm->a3;
+    p->trapframe->a4 = p->sigalarm->a4;
+    p->trapframe->a5 = p->sigalarm->a5;
+    p->trapframe->a6 = p->sigalarm->a6;
+    p->trapframe->a7 = p->sigalarm->a7;
+    p->trapframe->s2 = p->sigalarm->s2;
+    p->trapframe->s3 = p->sigalarm->s3;
+    p->trapframe->s4 = p->sigalarm->s4;
+    p->trapframe->s5 = p->sigalarm->s5;
+    p->trapframe->s6 = p->sigalarm->s6;
+    p->trapframe->s7 = p->sigalarm->s7;
+    p->trapframe->s8 = p->sigalarm->s8;
+    p->trapframe->s9 = p->sigalarm->s9;
+    p->trapframe->s10 = p->sigalarm->s10;
+    p->trapframe->s11 = p->sigalarm->s11;
+    p->trapframe->t3 = p->sigalarm->t3;
+    p->trapframe->t4 = p->sigalarm->t4;
+    p->trapframe->t5 = p->sigalarm->t5;
+    p->trapframe->t6 = p->sigalarm->t6;
+    w_sepc(p->sigalarm->sepc);
+    w_stvec(p->sigalarm->stvec);
+    w_sstatus(p->sigalarm->sstatus);
+    w_satp(p->sigalarm->satp);
+    p->sigalarm->retflag = 0;
+    p->sigalarm->reentrant = 1;
+  }
+
   // the user page table to switch to, for trampoline.S
   uint64 satp = MAKE_SATP(p->pagetable);
 
@@ -216,4 +301,3 @@ devintr()
     return 0;
   }
 }
-

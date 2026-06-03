@@ -72,6 +72,7 @@ sys_pause(void)
   if(n < 0)
     n = 0;
   acquire(&tickslock);
+  backtrace();
   ticks0 = ticks;
   while(ticks - ticks0 < n){
     if(killed(myproc())){
@@ -104,4 +105,25 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+// If an application calls sigalarm(n, fn), 
+// then after every n "ticks" of CPU time that the program consumes, 
+// the kernel should cause application function fn to be called.
+uint64
+sys_sigalarm(void)
+{
+  int interval;
+  uint64 handler;
+
+  argint(0, &interval);
+  argaddr(1, &handler);
+  return ksigalarm(interval, handler);
+}
+
+// return from sigalarm
+uint64
+sys_sigreturn(void)
+{
+  return ksigreturn();
 }
