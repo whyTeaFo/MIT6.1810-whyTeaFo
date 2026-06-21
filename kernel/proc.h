@@ -18,12 +18,18 @@ struct context {
   uint64 s11;
 };
 
+struct CPUfreelist {
+  struct spinlock lock;
+  struct run *freelist;
+};
+
 // Per-CPU state.
 struct cpu {
   struct proc *proc;          // The process running on this cpu, or null.
   struct context context;     // swtch() here to enter scheduler().
   int noff;                   // Depth of push_off() nesting.
   int intena;                 // Were interrupts enabled before push_off()?
+  struct CPUfreelist cpufl;   // per-CPU freelist
 };
 
 extern struct cpu cpus[NCPU];

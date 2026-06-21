@@ -121,31 +121,50 @@ release(struct spinlock *lk)
 }
 
 #ifdef LAB_LOCK
-static void
-read_acquire_inner(struct rwspinlock *rwlk)
-{
-  // Replace this with your implementation.
-  acquire(&rwlk->l);
+static void read_acquire_inner(struct rwspinlock *rwlk) {
+  while (1) {
+    acquire(&rwlk->l);
+
+    if (rwlk->writing || rwlk->cntwriter > 0) {
+      release(&rwlk->l);
+      continue;
+    }
+
+    rwlk->cntreader++;
+    release(&rwlk->l);
+    return;
+  }
 }
 
-static void
-read_release_inner(struct rwspinlock *rwlk)
-{
-  // Replace this with your implementation.
+static void read_release_inner(struct rwspinlock *rwlk) {
+  acquire(&rwlk->l);
+  rwlk->cntreader--;
   release(&rwlk->l);
 }
 
-static void
-write_acquire_inner(struct rwspinlock *rwlk)
-{
-  // Replace this with your implementation.
+static void write_acquire_inner(struct rwspinlock *rwlk) {
   acquire(&rwlk->l);
+  rwlk->cntwriter++;
+  release(&rwlk->l);
+
+  while (1) {
+    acquire(&rwlk->l);
+
+    if (rwlk->cntreader > 0 || rwlk->writing) {
+      release(&rwlk->l);
+      continue;
+    }
+
+    rwlk->cntwriter--;
+    rwlk->writing = 1;
+    release(&rwlk->l);
+    return;
+  }
 }
 
-static void
-write_release_inner(struct rwspinlock *rwlk)
-{
-  // Replace this with your implementation.
+static void write_release_inner(struct rwspinlock *rwlk) {
+  acquire(&rwlk->l);
+  rwlk->writing = 0;
   release(&rwlk->l);
 }
 
@@ -180,7 +199,9 @@ write_release(struct rwspinlock *rwlk)
 void
 initrwlock(struct rwspinlock *rwlk)
 {
-  // Replace this with your implementation.
+  rwlk->cntreader = 0;
+  rwlk->cntwriter = 0;
+  rwlk->writing = 0;
   initlock(&rwlk->l, "rwlk");
 }
 
